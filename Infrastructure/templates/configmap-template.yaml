@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: application-configmap-template
+metadata:
+  name: application-configmap
+objects:
+- apiVersion: v1
+  data:
+    appname: "${APPNAME}"
+  kind: ConfigMap
+  metadata:
+    name: "${NAME}"
+parameters:
+- description: Application display name
+  name: APPNAME
+  required: true
+- description: Configmap name
+  name: NAME
+  required: true
+

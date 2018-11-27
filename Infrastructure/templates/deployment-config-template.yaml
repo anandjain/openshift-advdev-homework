@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: application-configmap-template
+metadata:
+  name: application-configmap
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: mlbparks
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: mlbparks
+      deploymentconfig: mlbparks
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: mlbparks
+          deploymentconfig: mlbparks
+      spec:
+        containers:
+        - image: docker-registry.default.svc:5000/zzbat-test/mlbparks-buildconfig:0.0-0
+          imagePullPolicy: IfNotPresent
+          name: mlbparks
+          resources: {}
+          terminationMessagePath: "/dev/termination-log"
+          terminationMessagePolicy: File
+          env:
+          - name: APPNAME
+            valueFrom:
+              configMapKeyRef:
+                key: appname
+                name: "${CONFIGMAP}"
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: "${SECRETS}"
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: "${SECRETS}"
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: "${SECRETS}"
+          - name: DB_HOST
+            value: mongodb
+          - name: DB_PORT
+            value: '27017'
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - mlbparks
+        from:
+          kind: ImageStreamTag
+          name: mlbparks-buildconfig:0.0-0
+          namespace: zzbat-test
+      type: ImageChange
+parameters:
+- description: Name of the environment secrets
+  name: SECRETS
+  value: mongodb
+  required: true
+- description: Configmap name
+  name: CONFIGMAP
+  required: true
