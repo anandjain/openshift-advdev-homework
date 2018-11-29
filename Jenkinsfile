@@ -26,7 +26,7 @@ objects:
     kind: Route
     metadata:
       annotations:
-        haproxy.router.openshift.io/timeout: 4m
+        haproxy.router.openshift.io/timeout: 6m
         template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
       name: "${JENKINS_SERVICE_NAME}"
     spec:
@@ -85,20 +85,20 @@ objects:
               image: " "
               imagePullPolicy: IfNotPresent
               livenessProbe:
-                failureThreshold: 2
+                failureThreshold: 5
                 httpGet:
                   path: "/login"
                   port: 8080
                 initialDelaySeconds: 420
                 periodSeconds: 360
-                timeoutSeconds: 240
+                timeoutSeconds: 360
               name: jenkins
               readinessProbe:
                 httpGet:
                   path: "/login"
                   port: 8080
                 initialDelaySeconds: 3
-                timeoutSeconds: 240
+                timeoutSeconds: 360
               resources:
                 limits:
                   memory: "${MEMORY_LIMIT}"
